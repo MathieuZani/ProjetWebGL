@@ -445,8 +445,9 @@
 		
 		var chosenView = "none";
 
-		var control = new function(){
-			this.speedFactor = 1;
+		var control = {
+			speedFactor : 1,
+			resetAnimation : resetAnimation
 		}
 		
 		var viewControls = {
@@ -461,6 +462,7 @@
 		const gui = new dat.GUI();
 		const sceneControl = gui.addFolder("Scene");
 		sceneControl.add(control,'speedFactor',0,3);
+		sceneControl.add(control,'resetAnimation').name('Reset Animation');
 		const viewFolder = gui.addFolder("View");
 		viewFolder.add(viewControls,'none').name('None');
 		viewFolder.add(viewControls,'earth').name('Earth');
@@ -472,6 +474,8 @@
 		// events
 		window.addEventListener('keydown', onKeyDown, false);
 		window.addEventListener('resize', onWindowResize, false);
+		
+		var time = 0;
 		
 		function replaceVaisseau(){
 			vaisseau.position.set(70,-60,30);
@@ -495,7 +499,16 @@
 		
 		function replaceVaisseau3(){
 			vaisseau3.position.set(-200,50,0);
-			vaisseau3.rotateY(-375);
+			var timeInLoop = time % 4000;
+			if (timeInLoop >= 3250){
+				vaisseau3.rotateY(-((4000-timeInLoop)*0.5));
+			}
+			if (timeInLoop >= 2500 && timeInLoop <= 3250){
+				vaisseau3.remove(sprite2);
+			}
+			if (timeInLoop == 0){
+				vaisseau3.rotateY(-375);
+			}
 		}
 		
 		function setNoView(){
@@ -522,6 +535,16 @@
 			chosenView = "saturn";
 		}
 
+		function resetAnimation(){
+			replaceVaisseau();
+			replaceVaisseau2();
+			replaceVaisseau3();
+			replaceAsteroide();
+			replaceAsteroide2();
+			replaceAsteroide3();
+			time = 0;
+		}
+
 		var camPos = new THREE.Vector3(0,10,60);
 
 		function updateCamera(){
@@ -540,7 +563,7 @@
 			renderer.clear();
 		}
 		
-		var time = 0;
+		
 		function render()
 		{	
 			const delta = 5 * clock.getDelta();
@@ -586,7 +609,7 @@
 			if ((time % 4000) >= 3250){
 				vaisseau3.rotateY(0.5);
 			}
-			if ((time % 4000 > 3800)){
+			if ((time % 4000 >= 3800)){
 				vaisseau3.translateY(0.5);
 			}
 			if (time % 4000 == 0){
@@ -624,7 +647,6 @@
 					camPos = new THREE.Vector3(0,10,60);
 					break;
 				default: 
-					
 					break;
 				}
 			updateCamera();

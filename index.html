@@ -86,9 +86,6 @@
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(100,window.innerWidth/window.innerHeight,1,10000);
 		
-		/* Création d'un objet OrbitControls pour gérer le déplacement de caméra */
-		controls = new OrbitControls( camera, renderer.domElement );
-		
 		/* Placement et orientation de la caméra */
 		camera.position.set(0,10,60);
 		camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
@@ -148,7 +145,7 @@
 			bumpScale: 0.05,
 		})
 		var saturn = new THREE.Mesh(geometry, material);
-
+		
 		/* Saturn Ring */
 		var geometry	= new THREE.RingGeometry(0.55,0.75,64);
 		var texture	= new THREE.TextureLoader().load('images/saturnringcolor.jpg');
@@ -160,9 +157,31 @@
 		saturnRing.rotateX(20);
 		saturn.add(saturnRing);
 		saturn.position.set(40,-30,20);
-
-
+		
+		/* Uranus */
+		var geometry = new THREE.SphereGeometry(0.5, 32, 32)
+		var texture	= new THREE.TextureLoader().load('images/uranusmap.jpg');
+		var material = new THREE.MeshPhongMaterial({
+			map	: texture,
+			bumpMap	: texture,
+			bumpScale: 0.05,
+		})
+		var uranus = new THREE.Mesh(geometry, material);
+		
+		/* Uranus Ring */
+		var geometry	= new THREE.RingGeometry(0.55,0.75,64);
+		var texture	= new THREE.TextureLoader().load('images/uranusringcolour.jpg');
+		var material	= new THREE.MeshPhongMaterial({
+			map	: texture,
+		})
+		material.side = THREE.DoubleSide;
+		var uranusRing = new THREE.Mesh(geometry, material);
+		uranusRing.rotateX(-40);
+		uranus.add(uranusRing);
+		uranus.position.set(20,-30,-20);
+		
 		/* Soleil */
+		/* Déclarations des variables uniformes pour le shader */
 		uniforms = {
 			
 			"fogDensity": { value: 0.45 },
@@ -178,7 +197,7 @@
 		uniforms[ "texture2" ].value.wrapS = uniforms[ "texture2" ].value.wrapT = THREE.RepeatWrapping;
 		
 		const size = 0.65;
-		
+		/* Création du shader */
 		var material = new THREE.ShaderMaterial( {
 			
 			uniforms: uniforms,
@@ -188,13 +207,13 @@
 		} );
 		
 		var geometry = new THREE.SphereBufferGeometry( 10.0, 100, 100 );
-
+		
 		var sun = new THREE.Mesh( geometry, material );
 		sun.position.set(0.0,0.0,0.0);
 		sun.rotation.x = 0.3;
 		scene.add(sun);
 		
-		/* Ajout d'un effet autour de soleil */
+		/* Ajout d'un effet lumineux autour de soleil */
 		var spriteMaterial = new THREE.SpriteMaterial( 
 		{ 
 			map: new THREE.ImageUtils.loadTexture( 'images/glow.png' ), 
@@ -275,7 +294,7 @@
 		vaisseau.rotateY(180);
 		scene.add(vaisseau);
 		
-		/* Vaisseau spatial */
+		/* Vaisseau spatial 2*/
 		vaisseau2 = new THREE.Object3D();
 		
 		var mtlLoader = new MTLLoader();
@@ -297,7 +316,7 @@
 		
 		scene.add(vaisseau2);
 		
-		/* Vaisseau spatial */
+		/* Vaisseau spatial 3*/
 		vaisseau3 = new THREE.Object3D();
 		
 		var mtlLoader = new MTLLoader();
@@ -341,7 +360,7 @@
 		scene.add( light );
 		
 		
-		/* Astéroide */
+		/* Astéroide 2 */
 		asteroid2 = new THREE.Object3D();
 		var loader = new OBJLoader();
 		loader.load( "images/asteroid.obj", function(objet){
@@ -361,7 +380,7 @@
 		asteroid2.rotateZ(-100);
 		scene.add(asteroid2);
 		
-		/* Astéroide */
+		/* Astéroide 3 */
 		asteroid3 = new THREE.Object3D();
 		var loader = new OBJLoader();
 		loader.load( "images/asteroid.obj", function(objet){
@@ -390,6 +409,7 @@
 		spotLight.power = 10;
 		sun.add( spotLight );
 		
+		/* Ajout d'un effet pour l'animation de l'OVNI */
 		var spriteMaterial2 = new THREE.SpriteMaterial( 
 		{ 
 			map: new THREE.ImageUtils.loadTexture( 'images/glow.png' ), 
@@ -398,7 +418,7 @@
 		var sprite2 = new THREE.Sprite( spriteMaterial2 );
 		sprite2.scale.set(10, 50, 1.0);
 		
-		/* Ajout d'un point de pivot dans le soleil */
+		/* Mise en place des points de pivots pour les révolutions autour du soleil */
 		var venusPivotPoint = new THREE.Object3D();
 		venusPivotPoint.add(venus);
 		scene.add(venusPivotPoint);
@@ -414,17 +434,44 @@
 		var moonPivotPoint = new THREE.Object3D();
 		earth.add(moonPivotPoint);
 		moonPivotPoint.add(moon);
-
+		
 		var saturnPivotPoint = new THREE.Object3D();
 		saturnPivotPoint.add(saturn);
 		scene.add(saturnPivotPoint);
 		
+		var uranusPivotPoint = new THREE.Object3D();
+		uranusPivotPoint.add(uranus);
+		scene.add(uranusPivotPoint);
+		
+		var chosenView = "none";
+
+		var control = new function(){
+			this.speedFactor = 1;
+		}
+		
+		var viewControls = {
+			none : setNoView,
+			earth : setEarthView,
+			mars : setMarsView,
+			venus : setVenusView,
+			uranus : setUranusView,
+			saturn : setSaturnView
+		}
+
+		const gui = new dat.GUI();
+		const sceneControl = gui.addFolder("Scene");
+		sceneControl.add(control,'speedFactor',0,3);
+		const viewFolder = gui.addFolder("View");
+		viewFolder.add(viewControls,'none').name('None');
+		viewFolder.add(viewControls,'earth').name('Earth');
+		viewFolder.add(viewControls,'mars').name('Mars');
+		viewFolder.add(viewControls,'venus').name('Venus');
+		viewFolder.add(viewControls,'uranus').name('Uranus');
+		viewFolder.add(viewControls,'saturn').name('Saturn');
+
 		// events
 		window.addEventListener('keydown', onKeyDown, false);
 		window.addEventListener('resize', onWindowResize, false);
-		
-		/* Création d'un objet OrbitControls pour gérer le déplacement de caméra */
-		controls = new OrbitControls( camera, renderer.domElement );
 		
 		function replaceVaisseau(){
 			vaisseau.position.set(70,-60,30);
@@ -451,6 +498,36 @@
 			vaisseau3.rotateY(-375);
 		}
 		
+		function setNoView(){
+			chosenView = "none";
+		}
+
+		function setEarthView(){
+			chosenView = "earth";
+		}
+
+		function setVenusView(){
+			chosenView = "venus";
+		}
+
+		function setUranusView(){
+			chosenView = "uranus";
+		}
+
+		function setMarsView(){
+			chosenView = "mars";
+		}
+
+		function setSaturnView(){
+			chosenView = "saturn";
+		}
+
+		var camPos = new THREE.Vector3(0,10,60);
+
+		function updateCamera(){
+			camera.position.set(camPos.x,camPos.y,camPos.z);
+		}
+		
 		animate();
 		
 		function init()
@@ -464,8 +541,6 @@
 		}
 		
 		var time = 0;
-		var animationStart = 0;
-		var rotation = 0;
 		function render()
 		{	
 			const delta = 5 * clock.getDelta();
@@ -473,16 +548,16 @@
 			uniforms[ 'time' ].value += 0.2 * delta;
 			sun.rotation.y += 0.0125 * delta;
 			sun.rotation.x += 0.05 * delta;
-			venusPivotPoint.rotateZ(0.01);
-			marsPivotPoint.rotateX(0.005);
-			marsPivotPoint.rotateZ(0.003);
-			earthPivotPoint.rotateX(0.005);
-			earthPivotPoint.rotateZ(0.005);
-			moonPivotPoint.rotateZ(0.002);
-			saturnPivotPoint.rotateZ(0.005);
-			saturnPivotPoint.rotateY(0.003);
-			ovni.translateY((Math.sin(Date.now() * 0.002)) * 0.05);
-			ovni2.rotateY(0.02);
+			venusPivotPoint.rotateZ(0.01 * control.speedFactor);
+			marsPivotPoint.rotateX(0.005 * control.speedFactor);
+			marsPivotPoint.rotateZ(0.003 * control.speedFactor);
+			earthPivotPoint.rotateX(0.005 * control.speedFactor);
+			earthPivotPoint.rotateZ(0.005 * control.speedFactor);
+			moonPivotPoint.rotateZ(0.002 * control.speedFactor);
+			saturnPivotPoint.rotateZ(0.005 * control.speedFactor);
+			saturnPivotPoint.rotateY(0.003 * control.speedFactor);
+			uranusPivotPoint.rotateZ(0.005 * control.speedFactor);
+			uranusPivotPoint.rotateX(0.003 * control.speedFactor);
 			/* Boucle Vaisseau 1 */
 			if(time % 3000 == 0){
 				replaceVaisseau();
@@ -517,12 +592,42 @@
 			if (time % 4000 == 0){
 				replaceVaisseau3();
 			}
+			ovni.translateY((Math.sin(Date.now() * 0.002)) * 0.05);
+			ovni2.rotateY(0.02);
 			vaisseau.translateZ(0.5);
 			asteroid.translateY(-0.05);
 			asteroid2.translateY(-0.5);
 			vaisseau2.translateZ(0.5);
 			asteroid3.translateY(-0.3);
-			
+			switch(chosenView) {
+				case "earth":
+					earth.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "venus":
+					venus.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "mars":
+					mars.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "saturn":
+					saturn.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "uranus":
+					uranus.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "none":
+					camPos = new THREE.Vector3(0,10,60);
+					break;
+				default: 
+					
+					break;
+				}
+			updateCamera();
 			renderer.render(scene,camera);
 		}
 		

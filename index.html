@@ -89,7 +89,7 @@
 		/* Placement et orientation de la caméra */
 		camera.position.set(0,10,60);
 		camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
-		
+
 		const axesHelper = new THREE.AxesHelper( 20 );
 		scene.add( axesHelper );
 		
@@ -223,7 +223,7 @@
 		sprite.scale.set(30, 30, 1.0);
 		sun.add(sprite);
 		
-		var ovni,ovni2,vaisseau,asteroid,asteroid2,vaisseau2,vaisseau3,asteroid3;
+		var ovni,ovni2,vaisseau,asteroid,asteroid2,vaisseau2,vaisseau3,asteroid3,asteroid4,asteroid5;
 		
 		ovni = new THREE.Object3D();
 		/* OVNI */
@@ -242,10 +242,10 @@
 				}
 			});
 			objet.scale.set(0.03,0.03,0.03);
-			objet.position.set(0,30,0);
 			ovni.add(objet);
 		});
 		
+		ovni.position.set(0,30,0);
 		scene.add(ovni);
 		
 		ovni2 = new THREE.Object3D();
@@ -265,10 +265,10 @@
 				}
 			});
 			objet.scale.set(0.01,0.01,0.01);
-			objet.position.set(0,25,10);
 			ovni2.add(objet);
 		});
-		
+
+		ovni2.position.set(0,25,10);
 		scene.add(ovni2);
 		
 		
@@ -398,8 +398,56 @@
 			asteroid3.add(objet);
 		});
 		asteroid3.position.set(-200,-400,-80);
-		asteroid3.rotateZ(40);
+		asteroid3.rotateZ(20);
 		scene.add(asteroid3);
+		
+		/* Astéroide 4 */
+		asteroid4 = new THREE.Object3D();
+		var loader = new OBJLoader();
+		loader.load( "images/blue_asteroid.obj", function(objet){
+			
+			var material = objet.traverse( function( child ){
+				if(child.isMesh){
+					child.geometry.computeVertexNormals();
+					var texture = new THREE.TextureLoader().load('images/Normal.jpg');
+					var displacement = new THREE.TextureLoader().load('images/Displacement.jpg');
+					var emissive = new THREE.TextureLoader().load('images/Emission.jpg');
+					var normal = new THREE.TextureLoader().load('images/Normal.jpg');
+					child.material = new THREE.MeshPhongMaterial({
+						map: texture,
+						displacement : displacement,
+						emissiveMap : emissive,
+						normalMap : normal
+					});
+				}
+			});
+			objet.scale.set(1,1,1);
+			asteroid4.add(objet);
+		});
+		asteroid4.position.set(-30,-200,-50);
+		asteroid4.rotateZ(50);
+		scene.add(asteroid4);
+
+		/* Astéroide 5 */
+		asteroid5 = new THREE.Object3D();
+		var loader = new OBJLoader();
+		loader.load( "images/asteroid5.obj", function(objet){
+			
+			var material = objet.traverse( function( child ){
+				if(child.isMesh){
+					child.geometry.computeVertexNormals();
+					var texture = new THREE.TextureLoader().load('images/asteroid5.png');
+					child.material = new THREE.MeshPhongMaterial({
+						map: texture,
+					});
+				}
+			});
+			objet.scale.set(1,1,1);
+			asteroid5.add(objet);
+		});
+		asteroid5.position.set(10,-300,-100);
+		asteroid5.rotateZ(20);
+		scene.add(asteroid5);
 		
 		/* Ajout d'une lumière */
 		const spotLight = new THREE.SpotLight( 0xffffff );
@@ -442,6 +490,10 @@
 		var uranusPivotPoint = new THREE.Object3D();
 		uranusPivotPoint.add(uranus);
 		scene.add(uranusPivotPoint);
+
+		var ovniPivotPoint = new THREE.Object3D();
+		ovniPivotPoint.add(ovni2);
+		scene.add(ovniPivotPoint);
 		
 		var chosenView = "none";
 
@@ -456,7 +508,9 @@
 			mars : setMarsView,
 			venus : setVenusView,
 			uranus : setUranusView,
-			saturn : setSaturnView
+			saturn : setSaturnView,
+			ovni : setOvniView,
+			ovni2 : setOvni2View
 		}
 
 		const gui = new dat.GUI();
@@ -470,6 +524,8 @@
 		viewFolder.add(viewControls,'venus').name('Venus');
 		viewFolder.add(viewControls,'uranus').name('Uranus');
 		viewFolder.add(viewControls,'saturn').name('Saturn');
+		viewFolder.add(viewControls,'ovni').name('Big UFO');
+		viewFolder.add(viewControls,'ovni2').name('Little UFO');
 
 		// events
 		window.addEventListener('keydown', onKeyDown, false);
@@ -495,6 +551,14 @@
 		
 		function replaceAsteroide3(){
 			asteroid3.position.set(-200,-400,-80);
+		}
+
+		function replaceAsteroide4(){
+			asteroid4.position.set(-30,-200,-50);
+		}
+
+		function replaceAsteroide5(){
+			asteroid5.position.set(10,-300,-100);
 		}
 
 		function replaceVaisseau3(){
@@ -532,6 +596,14 @@
 			chosenView = "saturn";
 		}
 
+		function setOvniView(){
+			chosenView = "ovni";
+		}
+
+		function setOvni2View(){
+			chosenView = "ovni2";
+		}
+
 		function resetAnimation(){
 			replaceVaisseau();
 			replaceVaisseau2();
@@ -539,6 +611,8 @@
 			replaceAsteroide();
 			replaceAsteroide2();
 			replaceAsteroide3();
+			replaceAsteroide4();
+			replaceAsteroide5();
 			time = 0;
 		}
 
@@ -578,15 +652,17 @@
 			saturnPivotPoint.rotateY(0.003 * control.speedFactor);
 			uranusPivotPoint.rotateZ(0.005 * control.speedFactor);
 			uranusPivotPoint.rotateX(0.003 * control.speedFactor);
-			/* Boucle Vaisseau 1 */
+			/* Boucle Vaisseau 1, Astéroide 4 */
 			if(time % 3000 == 0){
 				replaceVaisseau();
+				replaceAsteroide4();
 			}
-			/* Boucle astéroide, Vaisseau 2, Astéroide 3 */
+			/* Boucle Astéroide, Vaisseau 2, Astéroide 3, Astéroide 5 */
 			if(time % 5000 == 0){
 				replaceAsteroide();
 				replaceVaisseau2();
 				replaceAsteroide3();
+				replaceAsteroide5();
 			}
 			/* Boucle astéroide 2 */
 			if(time % 10000 == 0){
@@ -616,12 +692,14 @@
 				replaceVaisseau3();
 			}
 			ovni.translateY((Math.sin(Date.now() * 0.002)) * 0.05);
-			ovni2.rotateY(0.02);
+			ovniPivotPoint.rotateY(0.02);
 			vaisseau.translateZ(0.5);
 			asteroid.translateY(-0.05);
 			asteroid2.translateY(-0.5);
 			vaisseau2.translateZ(0.5);
 			asteroid3.translateY(-0.3);
+			asteroid4.translateY(0.2);
+			asteroid5.translateY(0.1);
 			switch(chosenView) {
 				case "earth":
 					earth.getWorldPosition(camPos);
@@ -641,6 +719,14 @@
 					break;
 				case "uranus":
 					uranus.getWorldPosition(camPos);
+					camPos.z += 10;
+					break;
+				case "ovni":
+					ovni.getWorldPosition(camPos);
+					camPos.z += 20;
+					break;
+				case "ovni2":
+					ovni2.getWorldPosition(camPos);
 					camPos.z += 10;
 					break;
 				case "none":

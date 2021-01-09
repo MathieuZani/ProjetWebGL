@@ -496,21 +496,18 @@
 		function replaceAsteroide3(){
 			asteroid3.position.set(-200,-400,-80);
 		}
-		
+
 		function replaceVaisseau3(){
 			vaisseau3.position.set(-200,50,0);
 			var timeInLoop = time % 4000;
-			if (timeInLoop >= 3250){
-				vaisseau3.rotateY(-((4000-timeInLoop)*0.5));
+			if (timeInLoop > 3250 && timeInLoop < 3800){
+				vaisseau3.rotateY(-(((timeInLoop-3249)*0.5)));
 			}
 			if (timeInLoop >= 2500 && timeInLoop <= 3250){
 				vaisseau3.remove(sprite2);
 			}
-			if (timeInLoop == 0){
-				vaisseau3.rotateY(-375);
-			}
 		}
-		
+
 		function setNoView(){
 			chosenView = "none";
 		}
@@ -606,10 +603,13 @@
 			if (time % 4000 == 3250){
 				vaisseau3.remove(sprite2);
 			}
-			if ((time % 4000) >= 3250){
+			if ((time % 4000) >= 3250 && (time % 4000) < 3800){
 				vaisseau3.rotateY(0.5);
 			}
-			if ((time % 4000 >= 3800)){
+			if (time % 4000 == 3800){
+				vaisseau3.rotateY(-275);
+			}
+			if ((time % 4000) > 3800){
 				vaisseau3.translateY(0.5);
 			}
 			if (time % 4000 == 0){

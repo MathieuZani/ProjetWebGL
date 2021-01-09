@@ -111,9 +111,6 @@
 		camera.position.set(0,10,60);
 		camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
 		
-		/* Création d'un objet OrbitControls pour gérer le déplacement de caméra */
-		controls = new OrbitControls( camera, renderer.domElement );
-
 		const axesHelper = new THREE.AxesHelper( 20 );
 		scene.add( axesHelper );
 		
@@ -804,7 +801,7 @@
 				default: 
 				break;
 			}
-			//updateCamera();
+			updateCamera();
 			renderer.render(scene,camera);
 		}
 		

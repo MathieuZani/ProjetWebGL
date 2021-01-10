@@ -123,9 +123,6 @@
 		camera.position.set(0,10,60);
 		camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
 
-		const axesHelper = new THREE.AxesHelper( 20 );
-		scene.add( axesHelper );
-		
 		/* Champ d'étoiles */
 		var geometry = new THREE.SphereGeometry( 1000, 32, 32 );
 		var texture = new THREE.TextureLoader().load('ressources/galaxy_starfield.png');

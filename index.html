@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-	<title>WebGL 2020 - L3 - FST - UNILIM</title>
+	<title>Space System - ZANI / MEHMOOD </title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
@@ -53,41 +53,52 @@
 	</script>
 	
 	<script id="vertexShader" type="x-shader/x-vertex">
-		
-		uniform vec2 uvScale;
 		varying vec2 vUv;
-		
 		void main()
 		{
 			
-			vUv = uvScale * uv;
+			vUv = uv;
 			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
 			gl_Position = projectionMatrix * mvPosition;
-			
+
 		}
 		
 	</script>
 	<script id="vertexShader2" type="x-shader/x-vertex">
-		uniform float mixAmount;
 		varying vec2 vUv;
-		
-		void main() 
-		{ 
+		uniform float time;
+		varying float iTime;
+		void main()
+		{
 			vUv = uv;
-			vec3 goalPosition = 200.0 * vec3( 0, uv.y, -uv.x ) + vec3(0.0, -100.0, 100.0);
-			vec3 newPosition = mix( position, goalPosition, mixAmount );
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+			iTime = time;
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			gl_Position = projectionMatrix * mvPosition;
 		}
 	</script>
 	
 	<script id="fragmentShader2" type="x-shader/x-vertex"> 
-		uniform sampler2D baseTexture;
 		varying vec2 vUv;
-		
-		void main() 
-		{
-			gl_FragColor = texture2D( baseTexture, vUv );
-		}  
+		varying float iTime;
+		void main()
+		{	
+			vec2 center = vec2(0.5,0.5);
+			vec3 col = vec4(vUv,0.5+0.5*sin(iTime),1.0).xyz;
+		   
+			vec3 newcol;
+					
+			float x = (center.x-vUv.x);
+			float y = (center.y-vUv.y) * 1.5;
+				
+			float r = -sqrt(x*x + y*y);
+			float z = 1.0 + 0.5*sin((r+iTime*0.1)/0.01);
+			
+			newcol.x = z;
+			newcol.y = z;
+			newcol.z = z;
+			
+			gl_FragColor = vec4(col*newcol,1.0);
+		}
 	</script>
 	<script type="text/javascript" src="./dat.gui.min.js"></script>
 	<script type="text/javascript" src="./orbitcontrol.js"></script>
@@ -102,6 +113,7 @@
 		init();
 		
 		clock = new THREE.Clock();
+
 		
 		/* Instanciation de la caméra et de la scène */
 		scene = new THREE.Scene();
@@ -110,13 +122,13 @@
 		/* Placement et orientation de la caméra */
 		camera.position.set(0,10,60);
 		camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
-		
+
 		const axesHelper = new THREE.AxesHelper( 20 );
 		scene.add( axesHelper );
 		
 		/* Champ d'étoiles */
 		var geometry = new THREE.SphereGeometry( 1000, 32, 32 );
-		var texture = new THREE.TextureLoader().load('images/galaxy_starfield.png');
+		var texture = new THREE.TextureLoader().load('ressources/galaxy_starfield.png');
 		var material = new THREE.MeshBasicMaterial({map : texture});
 		material.side = THREE.BackSide;
 		var starfield = new THREE.Mesh( geometry, material );
@@ -124,10 +136,10 @@
 		
 		/* Terre */
 		var geometry = new THREE.SphereGeometry( 0.6, 100, 100 );
-		var texture = new THREE.TextureLoader().load('images/earthmap1k.jpg');
+		var texture = new THREE.TextureLoader().load('ressources/earthmap1k.jpg');
 		var material = new THREE.MeshPhongMaterial({map : texture});
-		material.bumpMap = new THREE.TextureLoader().load('images/earthbump1k.jpg');
-		material.specularMap = new THREE.TextureLoader().load('images/earthspec1k.jpg');
+		material.bumpMap = new THREE.TextureLoader().load('ressources/earthbump1k.jpg');
+		material.specularMap = new THREE.TextureLoader().load('ressources/earthspec1k.jpg');
 		material.specular = new THREE.Color('grey');
 		var earth = new THREE.Mesh( geometry, material );
 		earth.position.set(30.0,0.0,-20.0);
@@ -135,7 +147,7 @@
 		
 		/* Venus */
 		var geometry = new THREE.SphereGeometry( 0.8, 100, 100 );
-		var texture = new THREE.TextureLoader().load('images/venusmap.jpg');
+		var texture = new THREE.TextureLoader().load('ressources/venusmap.jpg');
 		var material = new THREE.MeshPhongMaterial({map : texture});
 		var venus = new THREE.Mesh( geometry, material );
 		venus.position.set(-20.0,0.0,0.0);
@@ -143,7 +155,7 @@
 		
 		/* Mars */
 		var geometry = new THREE.SphereGeometry( 1.2, 100, 100 );
-		var texture = new THREE.TextureLoader().load('images/marsmap1k.jpg');
+		var texture = new THREE.TextureLoader().load('ressources/marsmap1k.jpg');
 		var material = new THREE.MeshPhongMaterial({map : texture});
 		var mars = new THREE.Mesh( geometry, material );
 		mars.position.set(-20.0,20.0,30.0);
@@ -151,7 +163,7 @@
 		
 		/* Lune */
 		var geometry = new THREE.SphereGeometry( 0.2, 100, 100 );
-		var texture = new THREE.TextureLoader().load('images/moonmap1k.jpg');
+		var texture = new THREE.TextureLoader().load('ressources/moonmap1k.jpg');
 		var material = new THREE.MeshPhongMaterial({map : texture});
 		var moon = new THREE.Mesh( geometry, material );
 		moon.position.set(-2.0,-0.0,-0.0);
@@ -159,7 +171,7 @@
 		
 		/* Saturne */
 		var geometry	= new THREE.SphereGeometry(0.5, 32, 32)
-		var texture	= new THREE.TextureLoader().load('images/saturnmap.jpg');
+		var texture	= new THREE.TextureLoader().load('ressources/saturnmap.jpg');
 		var material	= new THREE.MeshPhongMaterial({
 			map	: texture,
 			bumpMap	: texture,
@@ -169,7 +181,7 @@
 		
 		/* Saturn Ring */
 		var geometry	= new THREE.RingGeometry(0.55,0.75,64);
-		var texture	= new THREE.TextureLoader().load('images/saturnringcolor.jpg');
+		var texture	= new THREE.TextureLoader().load('ressources/saturnringcolor.jpg');
 		var material	= new THREE.MeshPhongMaterial({
 			map	: texture,
 		})
@@ -181,7 +193,7 @@
 		
 		/* Uranus */
 		var geometry = new THREE.SphereGeometry(0.5, 32, 32)
-		var texture	= new THREE.TextureLoader().load('images/uranusmap.jpg');
+		var texture	= new THREE.TextureLoader().load('ressources/uranusmap.jpg');
 		var material = new THREE.MeshPhongMaterial({
 			map	: texture,
 			bumpMap	: texture,
@@ -191,7 +203,7 @@
 		
 		/* Uranus Ring */
 		var geometry	= new THREE.RingGeometry(0.55,0.75,64);
-		var texture	= new THREE.TextureLoader().load('images/uranusringcolour.jpg');
+		var texture	= new THREE.TextureLoader().load('ressources/uranusringcolour.jpg');
 		var material	= new THREE.MeshPhongMaterial({
 			map	: texture,
 		})
@@ -205,12 +217,9 @@
 		/* Déclarations des variables uniformes pour le shader */
 		uniforms = {
 			
-			"fogDensity": { value: 0.45 },
-			"fogColor": { value: new THREE.Vector3( 0, 0, 0 ) },
 			"time": { value: 1.0 },
-			"uvScale": { value: new THREE.Vector2( 3.0, 1.0 ) },
-			"texture1": { value: new THREE.TextureLoader().load( 'images/cloud.png' ) },
-			"texture2": { value: new THREE.TextureLoader().load( 'images/lavatile.jpg' ) }
+			"texture1": { value: new THREE.TextureLoader().load( 'ressources/cloud.png' ) },
+			"texture2": { value: new THREE.TextureLoader().load( 'ressources/lavatile.jpg' ) }
 			
 		};
 		
@@ -218,7 +227,7 @@
 		uniforms[ "texture2" ].value.wrapS = uniforms[ "texture2" ].value.wrapT = THREE.RepeatWrapping;
 		
 		const size = 0.65;
-		/* Création du shader */
+		/* Création du shader pour le soleil */
 		var material = new THREE.ShaderMaterial( {
 			
 			uniforms: uniforms,
@@ -238,13 +247,11 @@
 		
 		/* Planète avec le custom shader */
 		var geometry = new THREE.SphereBufferGeometry( 1, 100, 100 );
-		var texture = new THREE.TextureLoader().load('images/plutomap2k.jpg');
+		var texture = new THREE.TextureLoader().load('ressources/plutomap2k.jpg');
 
-		customUniforms = 
-		{
-			baseTexture: { type: "t", value: texture },
-			mixAmount: 	 { type: "f", value: 0.0 }
-		};
+		var customUniforms = ({
+			time : { type: "f" , value : 0}
+		});
 		
 		var customMaterial = new THREE.ShaderMaterial( 
 		{
@@ -252,32 +259,33 @@
 			vertexShader: document.getElementById('vertexShader2').textContent,
 			fragmentShader: document.getElementById('fragmentShader2').textContent,
 			side: THREE.DoubleSide
-		}   );
+		});
 		
 		var customPlanet = new THREE.Mesh( geometry, customMaterial );
-		customPlanet.position.set(10, 10, 10);
+		customPlanet.position.set(25, 0, 0);
 		customPlanet.rotation.set(0, -Math.PI / 2, 0);
 		scene.add( customPlanet );
 
 		/* Ajout d'un effet lumineux autour de soleil */
 		var spriteMaterial = new THREE.SpriteMaterial( 
 		{ 
-			map: new THREE.TextureLoader().load( 'images/glow.png' ), 
+			map: new THREE.TextureLoader().load( 'ressources/glow.png' ), 
 			color: 0xf1f5d5, transparent: true, blending: THREE.AdditiveBlending
 		});
 		var sprite = new THREE.Sprite( spriteMaterial );
 		sprite.scale.set(30, 30, 1.0);
 		sun.add(sprite);
-		
-		ovni = new THREE.Object3D();
+
 		/* OVNI */
+		ovni = new THREE.Object3D();
+		
 		var loader = new OBJLoader();
-		loader.load( "images/Low_poly_UFO.obj", function(objet){
+		loader.load( "ressources/Low_poly_UFO.obj", function(objet){
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/ufo_diffuse.png');
-					var specular = new THREE.TextureLoader().load('images/ufo_spec.png');
+					var texture = new THREE.TextureLoader().load('ressources/ufo_diffuse.png');
+					var specular = new THREE.TextureLoader().load('ressources/ufo_spec.png');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture,
 						specularMap: specular,
@@ -290,16 +298,17 @@
 		
 		ovni.position.set(0,30,0);
 		scene.add(ovni);
-		
-		ovni2 = new THREE.Object3D();
+
 		/* OVNI 2 */
+		ovni2 = new THREE.Object3D();
+		
 		var loader = new OBJLoader();
-		loader.load( "images/Low_poly_UFO.obj", function(objet){
+		loader.load( "ressources/Low_poly_UFO.obj", function(objet){
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/ufo_diffuse.png');
-					var specular = new THREE.TextureLoader().load('images/ufo_spec.png');
+					var texture = new THREE.TextureLoader().load('ressources/ufo_diffuse.png');
+					var specular = new THREE.TextureLoader().load('ressources/ufo_spec.png');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture,
 						specularMap: specular,
@@ -318,7 +327,7 @@
 		vaisseau = new THREE.Object3D();
 		
 		var mtlLoader = new MTLLoader();
-		var url = "images/spaceship.mtl";
+		var url = "ressources/spaceship.mtl";
 		mtlLoader.setMaterialOptions(THREE.BackSide);
 		mtlLoader.load( url, function( materials ) {
 			
@@ -327,7 +336,7 @@
 			var objLoader = new OBJLoader();
 			objLoader.setMaterials( materials );
 			objLoader.setPath( '' );
-			objLoader.load( 'images/spaceship.obj', function ( object ) {
+			objLoader.load( 'ressources/spaceship.obj', function ( object ) {
 				object.scale.set(0.5,0.5,0.5);
 				vaisseau.add(object);
 			});
@@ -340,7 +349,7 @@
 		vaisseau2 = new THREE.Object3D();
 		
 		var mtlLoader = new MTLLoader();
-		var url = "images/spaceship2.mtl";
+		var url = "ressources/spaceship2.mtl";
 		mtlLoader.setMaterialOptions(THREE.BackSide);
 		mtlLoader.load( url, function( materials ) {
 			
@@ -349,7 +358,7 @@
 			var objLoader = new OBJLoader();
 			objLoader.setMaterials( materials );
 			objLoader.setPath( '' );
-			objLoader.load( 'images/spaceship2.obj', function ( object ) {
+			objLoader.load( 'ressources/spaceship2.obj', function ( object ) {
 				object.scale.set(0.005,0.005,0.005);
 				vaisseau2.add(object);
 			});
@@ -362,7 +371,7 @@
 		vaisseau3 = new THREE.Object3D();
 		
 		var mtlLoader = new MTLLoader();
-		var url = "images/spaceship3.mtl";
+		var url = "ressources/spaceship3.mtl";
 		mtlLoader.setMaterialOptions(THREE.BackSide);
 		mtlLoader.load( url, function( materials ) {
 			
@@ -371,7 +380,7 @@
 			var objLoader = new OBJLoader();
 			objLoader.setMaterials( materials );
 			objLoader.setPath( '' );
-			objLoader.load( 'images/spaceship3.obj', function ( object ) {
+			objLoader.load( 'ressources/spaceship3.obj', function ( object ) {
 				object.scale.set(0.002,0.002,0.002);
 				vaisseau3.add(object);
 			});
@@ -383,12 +392,12 @@
 		/* Astéroide */
 		asteroid = new THREE.Object3D();
 		var loader = new OBJLoader();
-		loader.load( "images/asteroid.obj", function(objet){
+		loader.load( "ressources/asteroid.obj", function(objet){
 			
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/asteroid.jpg');
+					var texture = new THREE.TextureLoader().load('ressources/asteroid.jpg');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture
 					});
@@ -398,19 +407,17 @@
 		});
 		asteroid.position.set(10,70,30);
 		scene.add(asteroid);
-		const light = new THREE.AmbientLight( 0x404040 ); // soft white light
-		scene.add( light );
-		
+	
 		
 		/* Astéroide 2 */
 		asteroid2 = new THREE.Object3D();
 		var loader = new OBJLoader();
-		loader.load( "images/asteroid.obj", function(objet){
+		loader.load( "ressources/asteroid.obj", function(objet){
 			
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/asteroid.jpg');
+					var texture = new THREE.TextureLoader().load('ressources/asteroid.jpg');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture
 					});
@@ -425,12 +432,12 @@
 		/* Astéroide 3 */
 		asteroid3 = new THREE.Object3D();
 		var loader = new OBJLoader();
-		loader.load( "images/asteroid.obj", function(objet){
+		loader.load( "ressources/asteroid.obj", function(objet){
 			
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/asteroid.jpg');
+					var texture = new THREE.TextureLoader().load('ressources/asteroid.jpg');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture
 					});
@@ -446,15 +453,15 @@
 		/* Astéroide 4 */
 		asteroid4 = new THREE.Object3D();
 		var loader = new OBJLoader();
-		loader.load( "images/blue_asteroid.obj", function(objet){
+		loader.load( "ressources/blue_asteroid.obj", function(objet){
 			
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/Normal.jpg');
-					var displacement = new THREE.TextureLoader().load('images/Displacement.jpg');
-					var emissive = new THREE.TextureLoader().load('images/Emission.jpg');
-					var normal = new THREE.TextureLoader().load('images/Normal.jpg');
+					var texture = new THREE.TextureLoader().load('ressources/Normal.jpg');
+					var displacement = new THREE.TextureLoader().load('ressources/Displacement.jpg');
+					var emissive = new THREE.TextureLoader().load('ressources/Emission.jpg');
+					var normal = new THREE.TextureLoader().load('ressources/Normal.jpg');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture,
 						displacementMap : displacement,
@@ -473,12 +480,12 @@
 		/* Astéroide 5 */
 		asteroid5 = new THREE.Object3D();
 		var loader = new OBJLoader();
-		loader.load( "images/asteroid5.obj", function(objet){
+		loader.load( "ressources/asteroid5.obj", function(objet){
 			
 			var material = objet.traverse( function( child ){
 				if(child.isMesh){
 					child.geometry.computeVertexNormals();
-					var texture = new THREE.TextureLoader().load('images/asteroid5.png');
+					var texture = new THREE.TextureLoader().load('ressources/asteroid5.png');
 					child.material = new THREE.MeshPhongMaterial({
 						map: texture,
 					});
@@ -491,18 +498,21 @@
 		asteroid5.rotateZ(20);
 		scene.add(asteroid5);
 		
-		/* Ajout d'une lumière */
+		/* Ajout d'une lumière au centre pour simuler celle du soleil */
 		const spotLight = new THREE.SpotLight( 0xffffff );
-		
 		spotLight.castShadow = true;
 		spotLight.angle = Math.PI;
 		spotLight.power = 10;
 		sun.add( spotLight );
 		
+		/* Légère lumière ambiante pour avoir simuler la lumière générée par les étoiles dans l'espace */ 
+		const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+		scene.add( light );
+
 		/* Ajout d'un effet pour l'animation de l'OVNI */
 		var spriteMaterial2 = new THREE.SpriteMaterial( 
 		{ 
-			map: new THREE.TextureLoader().load( 'images/glow.png' ), 
+			map: new THREE.TextureLoader().load( 'ressources/glow.png' ), 
 			color: 0xff0000, transparent: true, blending: THREE.AdditiveBlending
 		});
 		var sprite2 = new THREE.Sprite( spriteMaterial2 );
@@ -536,11 +546,16 @@
 		var ovniPivotPoint = new THREE.Object3D();
 		ovniPivotPoint.add(ovni2);
 		scene.add(ovniPivotPoint);
+
+		var customPlanetPivotPoint = new THREE.Object3D();
+		customPlanetPivotPoint.add(customPlanet);
+		scene.add(customPlanetPivotPoint);
 		
+		/* Variables qui vont être modifiés via le dat GUI */
 		var chosenView = "none";
 		var animationSpeed = 1;
-		var x = 0;
 		
+		/* Variables pour le dat.GUI */
 		var control = {
 			speedFactor : 1,
 			resetAnimation : resetAnimation,
@@ -556,15 +571,19 @@
 			uranus : setUranusView,
 			saturn : setSaturnView,
 			ovni : setOvniView,
-			ovni2 : setOvni2View
+			ovni2 : setOvni2View,
+			customPlanet : setCustomPlanetView
 		}
 		
+		/* Création du dat.GUI pour interagir avec la scène */
 		const gui = new dat.GUI();
+		/* Dossier pour contrôler et interagir avec la scène */
 		const sceneControl = gui.addFolder("Scene");
 		sceneControl.add(control,'speedFactor',0,3);
 		sceneControl.add(control,'resetAnimation').name('Reset Animation');
 		sceneControl.add(control,'speedUpAnimation').name('Speed Up Animation');
 		sceneControl.add(control,'slowAnimationDown').name('Slow Down Animation');
+		/* Dossier pour changer la caméra de position */
 		const viewFolder = gui.addFolder("View");
 		viewFolder.add(viewControls,'none').name('None');
 		viewFolder.add(viewControls,'earth').name('Earth');
@@ -574,6 +593,7 @@
 		viewFolder.add(viewControls,'saturn').name('Saturn');
 		viewFolder.add(viewControls,'ovni').name('Big UFO');
 		viewFolder.add(viewControls,'ovni2').name('Little UFO');
+		viewFolder.add(viewControls,'customPlanet').name('Custom Planet');
 		
 		// events
 		window.addEventListener('keydown', onKeyDown, false);
@@ -581,6 +601,7 @@
 		
 		var time = 0;
 		
+		/* Toutes les fonctions pour replacer les objets à leur endroit par défaut */ 
 		function replaceVaisseau(){
 			vaisseau.position.set(70,-60,30);
 		}
@@ -622,6 +643,7 @@
 			resetRotation = 0;
 		}
 		
+		/* Toutes les fonctions pour changer la vue appelées via le dat.GUI */
 		function setNoView(){
 			chosenView = "none";
 		}
@@ -653,7 +675,13 @@
 		function setOvni2View(){
 			chosenView = "ovni2";
 		}
+
+		function setCustomPlanetView(){
+			chosenView = "customPlanet";
+		}
 		
+		/* Fonction qui fait appel à toutes les fonctions pour replacer les objets à leur emplacement par défaut 
+			et qui remet la variable temps à zéro pour relancer l'animation */
 		function resetAnimation(){
 			replaceVaisseau();
 			replaceVaisseau2();
@@ -697,16 +725,18 @@
 			renderer.setClearColor(0x4a4848, 1.0);
 			renderer.clear();
 		}
-		
-		var i = 0;
-		var vaisseauTimeLoop;
+		var startTime = Date.now();
+		var timeDelta = 0;
 		function render()
 		{	
+			/* Modification des variables pour effectuer une rotation sur le shader du soleil */
 			const delta = 5 * clock.getDelta();
 			time = time + 1;
+			timeDelta = Date.now() - startTime;
 			uniforms[ 'time' ].value += 0.2 * delta;
 			sun.rotation.y += 0.0125 * delta;
 			sun.rotation.x += 0.05 * delta;
+			/* Rotations des planètes définies arbitrairement et influencables par le dat.GUI*/
 			venusPivotPoint.rotateZ(0.01 * control.speedFactor);
 			marsPivotPoint.rotateX(0.005 * control.speedFactor);
 			marsPivotPoint.rotateZ(0.003 * control.speedFactor);
@@ -717,48 +747,62 @@
 			saturnPivotPoint.rotateY(0.003 * control.speedFactor);
 			uranusPivotPoint.rotateZ(0.005 * control.speedFactor);
 			uranusPivotPoint.rotateX(0.003 * control.speedFactor);
-			/* Boucle Vaisseau 1, Astéroide 4 */
+		
+			/* Modifications de variables pour le custom shader */
+			customPlanet.material.uniforms.time.value = timeDelta;
+			/* Boucle pour replacer le vaisseau et l'astéroide 4 */
 			if(time % (4000 / animationSpeed) == 0){
 				replaceVaisseau();
 				replaceAsteroide4();
 			}
-			/* Boucle Astéroide, Vaisseau 2, Astéroide 3, Astéroide 5 */
+			/* Boucle pour replacer l'astéroide 1, le vaisseau 2, l'astéroide 3, l'astéroide */
 			if(time % (6000 / animationSpeed) == 0){
 				replaceAsteroide();
 				replaceVaisseau2();
 				replaceAsteroide3();
 				replaceAsteroide5();
 			}
-			/* Boucle astéroide 2 */
+
+			/* Boucle pour replacer l'astéroide 2 */
 			if(time % (10000 / animationSpeed) == 0){
 				replaceAsteroide2();
 			}
+
 			/* Vaisseau 3 */
+			/* Premier déplacement */
 			if ((time % (6000 / animationSpeed)) < (2000 / animationSpeed)){
 				vaisseau3.translateX(0.1 * animationSpeed);
 			}
+			/* Ajout du faisceau lumineux en dessous du vaisseau */
 			if ((time % (6000 / animationSpeed)) == (3000 / animationSpeed)){
 				vaisseau3.add(sprite2);
 				sprite2.position.y = -15;
 			}
+			/* Retrait du faisceau lumineux */
 			if (time % (6000 / animationSpeed) == (4000 / animationSpeed)){
 				vaisseau3.remove(sprite2);
 			}
+			/* Rotation du vaisseau */
 			if ((time % (6000 / animationSpeed)) >= (4000 / animationSpeed) && (time % (6000 / animationSpeed)) < (5000 / animationSpeed)){
 				resetRotation += 0.5 * animationSpeed;
 				vaisseau3.rotateY(0.5 * animationSpeed);
 			}
+			/* On annule la rotation afin qu'à la prochaine boucle le vaisseau soit bien placé */
 			if (time % (6000 / animationSpeed) == (5000 / animationSpeed)){
 				vaisseau3.rotateY(-500);
 			}
+			/* Déplacement de fin */
 			if ((time % (6000 / animationSpeed)) > (5000 / animationSpeed)){
 				vaisseau3.translateY(0.5 * animationSpeed);
 			}
+			/* On replace le vaisseau 3 */
 			if (time % (6000/ animationSpeed) == 0){
 				replaceVaisseau3();
 			}
+			/* Déplacement du plus gros OVNI */ 
 			ovni.translateY((Math.sin(Date.now() * 0.002)) * 0.05);
 			ovniPivotPoint.rotateY(0.02);
+			/* Déplacement des objets dans l'espace */
 			vaisseau.translateZ(0.5 * animationSpeed);
 			asteroid.translateY(-0.05 * animationSpeed);
 			asteroid2.translateY(-0.5 * animationSpeed);
@@ -766,6 +810,11 @@
 			asteroid3.translateY(-0.3 * animationSpeed);
 			asteroid4.translateY(0.2 * animationSpeed);
 			asteroid5.translateY(0.1 * animationSpeed);
+			customPlanetPivotPoint.rotateY(0.003 * control.speedFactor);
+			customPlanet.translateY((Math.sin(Date.now() * 0.002)) * 0.05);
+			/* Boucle switch pour choisir le point de vue de la caméra qui se positionnera en face de la planète choisie 
+				ou à l'emplacement par défaut si aucune planète n'est choisie */
+			/* On copie la position qui nous intéresse dans la variable camPos */
 			switch(chosenView) {
 				case "earth":
 				earth.getWorldPosition(camPos);
@@ -795,12 +844,17 @@
 				ovni2.getWorldPosition(camPos);
 				camPos.z += 10;
 				break;
+				case "customPlanet":
+				customPlanet.getWorldPosition(camPos);
+				camPos.z += 10;
+				break;
 				case "none":
 				camPos = new THREE.Vector3(0,10,60);
 				break;
 				default: 
 				break;
 			}
+			/* Appel à la fonction updateCamera qui va changer l'emplacement de la caméra en fonction de camPos */
 			updateCamera();
 			renderer.render(scene,camera);
 		}
